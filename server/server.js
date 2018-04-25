@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const { ObjectID } = require('mongodb'); 
+const _ = require('lodash');
 
 const { mongoose } = require('./db/mongoose');
 const { Todo } = require('./models/todo');
@@ -48,6 +49,21 @@ app.get('/todos/:id', (req, res) => {
         res.status(400).send();
     })
 });
+
+app.post('/users', (req, res) => {
+    let body = _.pick(req.body, ['email', 'password']);
+    let user = new User(body);
+    
+    user.generateAuthToken();
+    let token = user.tokens[0].token;
+
+    user.save().then(() => {
+        res.header('x-auth', token).send(user);
+    }).catch((error) => {
+        res.status(400).send(error);
+    });
+});
+
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
